@@ -18,6 +18,6 @@ Run `make run`
 
 ## Testing
 
-Check if the server is running at `http://127.0.0.1:8000/api/hello`
+Check if the server is running at [http://127.0.0.1:8000/api/hello](http://127.0.0.1:8000/api/hello)
 
 Enjoy!
