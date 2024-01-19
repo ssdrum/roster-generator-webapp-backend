@@ -27,7 +27,7 @@ class Data(BaseModel):
     shifts: int
 
 
-@app.get("/api")
+@app.get("/api/hello")
 async def root():
     return {"message": "Hello world!"}
 
