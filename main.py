@@ -1,5 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
+
+from algorithm import generate_roster
 
 app = FastAPI()
 
@@ -18,6 +21,17 @@ app.add_middleware(
 )
 
 
+class Data(BaseModel):
+    employees: int
+    days: int
+    shifts: int
+
+
 @app.get("/api")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "Hello world!"}
+
+
+@app.post("/api/test")
+async def test(data: Data):
+    return generate_roster(data.employees, data.days, data.shifts)

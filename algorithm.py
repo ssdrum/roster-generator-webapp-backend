@@ -26,15 +26,21 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
             self.StopSearch()
 
 
-def main():
-    # Initialise model
+def generate_roster(e: int, d: int, s: int):
+    """
+    e: Number of employees.
+    d: Number of days in the working week
+    s: Number of shifts
+    """
+
+    try:
+        assert e > 0 and d > 0 and s > 0
+    except AssertionError:
+        return "Invalid parameters"
+
     model = cp_model.CpModel()
 
     # Define variables
-    e = 1  # Number of employees
-    d = 3  # Number of days in the work week
-    s = 3  # Number of shifts
-
     employees_range = range(1, e + 1)
     days_range = range(1, d + 1)
     shifts_range = range(1, s + 1)
@@ -65,21 +71,22 @@ def main():
 
     # Print solutions
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        print()
+        result = ""
+        result += "\n"
         days = ["M", "T", "W", "T", "F", "S", "S"]
         for solution in solution_printer.solutions:
             header = ""
             for d in days_range:
                 header += f"{days[d - 1]} "
-            print(header)
+            result += f"{header} \n"
             i = 1
             for shift in solution:
                 if solution[shift] == 1:
-                    print(f"{shift[2]} ", end="")
+                    result += f"{shift[2]} "
                     if i % d == 0:
-                        print()
+                        result += "\n"
                     i += 1
-            print()
+            result += "\n"
 
     assert len(solution_printer.solutions) == 5
 
@@ -89,6 +96,8 @@ def main():
     print("  - conflicts       : %i" % solver.NumConflicts())
     print("  - branches        : %i" % solver.NumBranches())
     print("  - wall time       : %f s" % solver.WallTime())
+
+    return result
 
 
 if __name__ == "__main__":
