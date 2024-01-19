@@ -27,7 +27,7 @@ def main():
     model = cp_model.CpModel()
 
     # Define variables
-    e = 3  # Number of employees
+    e = 2  # Number of employees
     d = 7  # Number of days in the workw eek
     s = 3  # Number of shifts
 
@@ -44,12 +44,38 @@ def main():
 
     # Constraints
     # 1. Each employee works at most one shift per day
+    for i in employees_range:
+        for j in days_range:
+            model.AddExactlyOne(roster[(i, j, k)] for k in shifts_range)
 
     # Solve
     solver = cp_model.CpSolver()
     solution_printer = SolutionPrinter(roster, e, d, s)
-    # Find all solutions
-    solver.SearchForAllSolutions(model, solution_printer)
+    # Find solutions
+    status = solver.Solve(model, solution_printer)
+
+    # Print solutions
+    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+        print()
+        days = ["M", "T", "W", "T", "F", "S", "S"]
+        header = ""
+        for d in days_range:
+            header += f"{days[d - 1]} "
+        print(header)
+        sol_1 = solution_printer.solutions[0]
+        i = 1
+        for shift in sol_1:
+            if sol_1[shift] == 1:
+                print(f"{shift[2]} ", end="")
+                if i % d == 0:
+                    print()
+                i += 1
+
+    print("Statistics")
+    print("  - status          : %s" % solver.StatusName(status))
+    print("  - conflicts       : %i" % solver.NumConflicts())
+    print("  - branches        : %i" % solver.NumBranches())
+    print("  - wall time       : %f s" % solver.WallTime())
 
 
 if __name__ == "__main__":
