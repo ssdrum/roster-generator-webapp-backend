@@ -43,7 +43,7 @@ def generate_roster(e: int, d: int, s: int):
     # Define variables
     employees_range = range(1, e + 1)
     days_range = range(1, d + 1)
-    shifts_range = range(1, s + 1)  # shift 1 == off
+    shifts_range = range(1, s + 1)  # shift 1 == day off
 
     # Define X
     roster = {}
@@ -63,7 +63,12 @@ def generate_roster(e: int, d: int, s: int):
         for j in range(1, d + 1):
             model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
 
-    # 3. TODO Each shift must be covered by one employee
+    # 3. There must be an employee working on every shift
+    # Explanation: For every shift, there has to be one employee assigned that is not on a day off
+    for j in days_range:
+        for k in shifts_range:
+            if k != 1:  # Skip shift 1 which represents a day off
+                model.Add(sum(roster[(i, j, k)] for i in employees_range) > 0)
 
     # Solve
     solver = cp_model.CpSolver()
