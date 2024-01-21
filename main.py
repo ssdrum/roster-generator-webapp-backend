@@ -32,6 +32,6 @@ async def root():
     return {"message": "Hello world!"}
 
 
-@app.post("/api/test")
+@app.post("/api/make_roster")
 async def test(data: Data):
     return generate_roster(data.employees, data.days, data.shifts)

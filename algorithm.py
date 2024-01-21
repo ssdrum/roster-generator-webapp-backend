@@ -78,24 +78,29 @@ def generate_roster(e: int, d: int, s: int):
 
     # Print solutions
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        result = ""
-        result += "\n"
-        days = ["M", "T", "W", "T", "F", "S", "S"]
-        for solution in solution_printer.solutions:
-            header = ""
-            for d in days_range:
-                header += f"{days[d - 1]} "
-            result += f"{header} \n"
-            i = 1
-            for shift in solution:
-                if solution[shift] == 1:
-                    result += f"{shift[2]} "
-                    if i % d == 0:
-                        result += "\n"
-                    i += 1
-            result += "\n"
+        # construct return object to pass to client
+        data = {
+            "num_days": d,
+            "shifts": {"Luigi": [1, 2, 3], "Oisin": [4, 5, 6], "Niall": [7, 8, 9]},
+        }
+        # solution = solution_printer.solutions[0]
 
-    assert len(solution_printer.solutions) == 5
+    # result = ""
+    # result += "\n"
+    # days = ["M", "T", "W", "T", "F", "S", "S"]
+    # for solution in solution_printer.solutions:
+    #     header = ""
+    #     for d in days_range:
+    #         header += f"{days[d - 1]} "
+    #     result += f"{header} \n"
+    #     i = 1
+    #     for shift in solution:
+    #         if solution[shift] == 1:
+    #             result += f"{shift[2]} "
+    #             if i % d == 0:
+    #                 result += "\n"
+    #             i += 1
+    #     result += "\n"
 
     # Print statistics
     print("Statistics")
@@ -104,8 +109,4 @@ def generate_roster(e: int, d: int, s: int):
     print("  - branches        : %i" % solver.NumBranches())
     print("  - wall time       : %f s" % solver.WallTime())
 
-    return result
-
-
-if __name__ == "__main__":
-    main()
+    return data
