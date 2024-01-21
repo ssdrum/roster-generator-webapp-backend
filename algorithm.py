@@ -43,7 +43,7 @@ def generate_roster(e: int, d: int, s: int):
     # Define variables
     employees_range = range(1, e + 1)
     days_range = range(1, d + 1)
-    shifts_range = range(1, s + 1)
+    shifts_range = range(1, s + 1)  # shift 1 == off
 
     # Define X
     roster = {}
@@ -58,7 +58,10 @@ def generate_roster(e: int, d: int, s: int):
         for j in days_range:
             model.AddExactlyOne(roster[(i, j, k)] for k in shifts_range)
 
-    # 2. TODO Each employee works at most 5 shift per week
+    # 2. Each employee gets 2 days off per week
+    for i in employees_range:
+        for j in range(1, d + 1):
+            model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
 
     # 3. TODO Each shift must be covered by one employee
 
