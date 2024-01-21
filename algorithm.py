@@ -60,8 +60,7 @@ def generate_roster(e: int, d: int, s: int):
 
     # 2. Each employee gets 2 days off per week
     for i in employees_range:
-        for j in range(1, d + 1):
-            model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
+        model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
 
     # 3. There must be an employee working on every shift
     # Explanation: For every shift, there has to be one employee assigned that is not on a day off
