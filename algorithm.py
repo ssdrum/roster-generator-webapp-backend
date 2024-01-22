@@ -76,10 +76,10 @@ def generate_roster(e: int, d: int, s: int):
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
 
-    # Print solutions
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-        # construct return object to pass to client
+        # construct return object to return first solution
         data = {
+            "status": 1,
             "week_length": d,
             "data": [],
         }
@@ -93,23 +93,32 @@ def generate_roster(e: int, d: int, s: int):
                 {"employee_name": f"Employee {employee_num}", "shifts": shifts}
             )
 
-    result = ""
-    result += "\n"
-    days = ["M", "T", "W", "T", "F", "S", "S"]
-    for solution in solution_printer.solutions:
-        header = ""
-        for d in days_range:
-            header += f"{days[d - 1]} "
-        result += f"{header} \n"
-        i = 1
-        for shift in solution:
-            if solution[shift] == 1:
-                result += f"{shift[2]} "
-                if i % d == 0:
-                    result += "\n"
-                i += 1
+        # Print solutions
+        result = ""
         result += "\n"
-    print(result)
+        days = ["M", "T", "W", "T", "F", "S", "S"]
+        for solution in solution_printer.solutions:
+            header = ""
+            for d in days_range:
+                header += f"{days[d - 1]} "
+            result += f"{header} \n"
+            i = 1
+            for shift in solution:
+                if solution[shift] == 1:
+                    result += f"{shift[2]} "
+                    if i % d == 0:
+                        result += "\n"
+                    i += 1
+            result += "\n"
+        print(result)
+    else:
+        data = {
+            "status": 0,
+            "week_length": -1,
+            "data": [],
+        }
+
+    return data
 
     # Print statistics
     print("Statistics")
@@ -117,5 +126,3 @@ def generate_roster(e: int, d: int, s: int):
     print("  - conflicts       : %i" % solver.NumConflicts())
     print("  - branches        : %i" % solver.NumBranches())
     print("  - wall time       : %f s" % solver.WallTime())
-
-    return data
