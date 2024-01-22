@@ -10,6 +10,7 @@ origins = [
     "http://localhost:3000",
     "https://roster-generator-webapp-git-development-api-in-9113f2-sdrummolo.vercel.app",
     "https://roster-generator-webapp-git-dev-sdrummolo.vercel.app",
+    "https://roster-generator-webapp-git-alpha-sdrummolo.vercel.app",  # alpha preview
 ]
 
 app.add_middleware(
