@@ -43,7 +43,7 @@ def generate_roster(e: int, d: int, s: int):
     # Define variables
     employees_range = range(1, e + 1)
     days_range = range(1, d + 1)
-    shifts_range = range(1, s + 1)
+    shifts_range = range(1, s + 1)  # shift 1 == day off
 
     # Define X
     roster = {}
@@ -58,9 +58,16 @@ def generate_roster(e: int, d: int, s: int):
         for j in days_range:
             model.AddExactlyOne(roster[(i, j, k)] for k in shifts_range)
 
-    # 2. TODO Each employee works at most 5 shift per week
+    # 2. Each employee gets 2 days off per week
+    for i in employees_range:
+        model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
 
-    # 3. TODO Each shift must be covered by one employee
+    # 3. There must be an employee working on every shift
+    # Explanation: For every shift, there has to be one employee assigned that is not on a day off
+    for j in days_range:
+        for k in shifts_range:
+            if k != 1:  # Skip shift 1 which represents a day off
+                model.Add(sum(roster[(i, j, k)] for i in employees_range) > 0)
 
     # Solve
     solver = cp_model.CpSolver()
@@ -69,8 +76,24 @@ def generate_roster(e: int, d: int, s: int):
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
 
-    # Print solutions
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
+        # construct return object to return first solution
+        data = {
+            "status": 1,
+            "week_length": d,
+            "data": [],
+        }
+        solution = solution_printer.solutions[0]
+        all_shifts = [
+            k for k, v in solution.items() if v == 1
+        ]  # Filter assignes shifts
+        for employee_num in employees_range:
+            shifts = [s for (e, d, s) in all_shifts if e == employee_num]
+            data["data"].append(
+                {"employee_name": f"Employee {employee_num}", "shifts": shifts}
+            )
+
+        # Print solutions
         result = ""
         result += "\n"
         days = ["M", "T", "W", "T", "F", "S", "S"]
@@ -87,8 +110,15 @@ def generate_roster(e: int, d: int, s: int):
                         result += "\n"
                     i += 1
             result += "\n"
+        print(result)
+    else:
+        data = {
+            "status": 0,
+            "week_length": -1,
+            "data": [],
+        }
 
-    assert len(solution_printer.solutions) == 5
+    return data
 
     # Print statistics
     print("Statistics")
@@ -96,9 +126,3 @@ def generate_roster(e: int, d: int, s: int):
     print("  - conflicts       : %i" % solver.NumConflicts())
     print("  - branches        : %i" % solver.NumBranches())
     print("  - wall time       : %f s" % solver.WallTime())
-
-    return result
-
-
-if __name__ == "__main__":
-    main()
