@@ -80,27 +80,36 @@ def generate_roster(e: int, d: int, s: int):
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         # construct return object to pass to client
         data = {
-            "num_days": d,
-            "shifts": {"Luigi": [1, 2, 3], "Oisin": [4, 5, 6], "Niall": [7, 8, 9]},
+            "week_length": d,
+            "data": [],
         }
-        # solution = solution_printer.solutions[0]
+        solution = solution_printer.solutions[0]
+        all_shifts = [
+            k for k, v in solution.items() if v == 1
+        ]  # Filter assignes shifts
+        for employee_num in employees_range:
+            shifts = [s for (e, d, s) in all_shifts if e == employee_num]
+            data["data"].append(
+                {"employee_name": f"Employee {employee_num}", "shifts": shifts}
+            )
 
-    # result = ""
-    # result += "\n"
-    # days = ["M", "T", "W", "T", "F", "S", "S"]
-    # for solution in solution_printer.solutions:
-    #     header = ""
-    #     for d in days_range:
-    #         header += f"{days[d - 1]} "
-    #     result += f"{header} \n"
-    #     i = 1
-    #     for shift in solution:
-    #         if solution[shift] == 1:
-    #             result += f"{shift[2]} "
-    #             if i % d == 0:
-    #                 result += "\n"
-    #             i += 1
-    #     result += "\n"
+    result = ""
+    result += "\n"
+    days = ["M", "T", "W", "T", "F", "S", "S"]
+    for solution in solution_printer.solutions:
+        header = ""
+        for d in days_range:
+            header += f"{days[d - 1]} "
+        result += f"{header} \n"
+        i = 1
+        for shift in solution:
+            if solution[shift] == 1:
+                result += f"{shift[2]} "
+                if i % d == 0:
+                    result += "\n"
+                i += 1
+        result += "\n"
+    print(result)
 
     # Print statistics
     print("Statistics")
