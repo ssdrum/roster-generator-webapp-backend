@@ -26,7 +26,7 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
             self.StopSearch()
 
 
-def generate_roster(e: int, d: int, s: int):
+def generate_roster(e: int, d: int, s: int, soft_days_off: bool):
     """
     e: Number of employees.
     d: Number of days in the working week
@@ -58,9 +58,18 @@ def generate_roster(e: int, d: int, s: int):
         for j in days_range:
             model.AddExactlyOne(roster[(i, j, k)] for k in shifts_range)
 
-    # 2. Each employee gets 2 days off per week
-    for i in employees_range:
-        model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
+    # Make 2 days off a soft constraint and then maximise
+    if soft_days_off:
+        for i in employees_range:
+            model.Add(sum(roster[(i, j, 1)] for j in days_range) <= 2)
+        total_days_off = sum(
+            roster[(i, j, 1)] for i in employees_range for j in days_range
+        )
+        model.Maximize(total_days_off)
+    else:
+        # Make 2 days off a hard constraint
+        for i in employees_range:
+            model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
 
     # 3. There must be an employee working on every shift
     # Explanation: For every shift, there has to be one employee assigned that is not on a day off
@@ -71,7 +80,9 @@ def generate_roster(e: int, d: int, s: int):
 
     # Solve
     solver = cp_model.CpSolver()
-    solution_printer = SolutionPrinter(roster, e, d, s, 5)
+    solution_printer = SolutionPrinter(
+        roster, e, d, s, 5
+    )  # Stop after finding 5 solutions
     # Find solutions
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
@@ -84,9 +95,8 @@ def generate_roster(e: int, d: int, s: int):
             "data": [],
         }
         solution = solution_printer.solutions[0]
-        all_shifts = [
-            k for k, v in solution.items() if v == 1
-        ]  # Filter assignes shifts
+        # Filter assigned shifts
+        all_shifts = [k for k, v in solution.items() if v == 1]
         for employee_num in employees_range:
             shifts = [s for (e, d, s) in all_shifts if e == employee_num]
             data["data"].append(
@@ -112,13 +122,12 @@ def generate_roster(e: int, d: int, s: int):
             result += "\n"
         print(result)
     else:
+        # Failure
         data = {
             "status": 0,
             "week_length": -1,
             "data": [],
         }
-
-    return data
 
     # Print statistics
     print("Statistics")
@@ -126,3 +135,5 @@ def generate_roster(e: int, d: int, s: int):
     print("  - conflicts       : %i" % solver.NumConflicts())
     print("  - branches        : %i" % solver.NumBranches())
     print("  - wall time       : %f s" % solver.WallTime())
+
+    return data
