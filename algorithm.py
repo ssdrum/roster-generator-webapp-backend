@@ -71,7 +71,9 @@ def generate_roster(e: int, d: int, s: int):
 
     # Solve
     solver = cp_model.CpSolver()
-    solution_printer = SolutionPrinter(roster, e, d, s, 5)
+    solution_printer = SolutionPrinter(
+        roster, e, d, s, 5
+    )  # Stop after finding 5 solutions
     # Find solutions
     solver.parameters.enumerate_all_solutions = True
     status = solver.Solve(model, solution_printer)
@@ -84,9 +86,8 @@ def generate_roster(e: int, d: int, s: int):
             "data": [],
         }
         solution = solution_printer.solutions[0]
-        all_shifts = [
-            k for k, v in solution.items() if v == 1
-        ]  # Filter assignes shifts
+        # Filter assigned shifts
+        all_shifts = [k for k, v in solution.items() if v == 1]
         for employee_num in employees_range:
             shifts = [s for (e, d, s) in all_shifts if e == employee_num]
             data["data"].append(
@@ -112,13 +113,12 @@ def generate_roster(e: int, d: int, s: int):
             result += "\n"
         print(result)
     else:
+        # Failure
         data = {
             "status": 0,
             "week_length": -1,
             "data": [],
         }
-
-    return data
 
     # Print statistics
     print("Statistics")
@@ -126,3 +126,5 @@ def generate_roster(e: int, d: int, s: int):
     print("  - conflicts       : %i" % solver.NumConflicts())
     print("  - branches        : %i" % solver.NumBranches())
     print("  - wall time       : %f s" % solver.WallTime())
+
+    return data
