@@ -117,7 +117,7 @@ class RosterProblem:
 
         Returns:
             dict: A dictionary with solution details, including the roster
-            ssignment for each employee.
+            assignment for each employee.
         """
         self.create_variables()
         self.add_constraints()
