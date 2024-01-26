@@ -26,6 +26,7 @@ class Data(BaseModel):
     employees: int
     days: int
     shifts: int
+    soft_days_off: bool
 
 
 @app.get("/api/hello")
@@ -35,4 +36,4 @@ async def root():
 
 @app.post("/api/make_roster")
 async def test(data: Data):
-    return generate_roster(data.employees, data.days, data.shifts)
+    return generate_roster(data.employees, data.days, data.shifts, data.soft_days_off)

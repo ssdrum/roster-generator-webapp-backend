@@ -26,7 +26,7 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
             self.StopSearch()
 
 
-def generate_roster(e: int, d: int, s: int):
+def generate_roster(e: int, d: int, s: int, soft_days_off: bool):
     """
     e: Number of employees.
     d: Number of days in the working week
@@ -58,9 +58,18 @@ def generate_roster(e: int, d: int, s: int):
         for j in days_range:
             model.AddExactlyOne(roster[(i, j, k)] for k in shifts_range)
 
-    # 2. Each employee gets 2 days off per week
-    for i in employees_range:
-        model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
+    # Make 2 days off a soft constraint and then maximise
+    if soft_days_off:
+        for i in employees_range:
+            model.Add(sum(roster[(i, j, 1)] for j in days_range) <= 2)
+        total_days_off = sum(
+            roster[(i, j, 1)] for i in employees_range for j in days_range
+        )
+        model.Maximize(total_days_off)
+    else:
+        # Make 2 days off a hard constraint
+        for i in employees_range:
+            model.Add(sum(roster[(i, j, 1)] for j in days_range) == 2)
 
     # 3. There must be an employee working on every shift
     # Explanation: For every shift, there has to be one employee assigned that is not on a day off
