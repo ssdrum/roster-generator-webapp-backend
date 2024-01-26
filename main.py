@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing_extensions import Annotated
 
-from algorithm import make_roster
+from roster_solver import RosterProblem
 
 app = FastAPI()
 
@@ -48,9 +48,10 @@ async def test(input_data: InputData):
     """
     This is the main endpoint for generating rosters
     """
-    return make_roster(
+    problem = RosterProblem(
         input_data.num_employees,
         input_data.num_days,
         input_data.num_shifts,
         input_data.soft_days_off,
     )
+    return problem.make_roster()
