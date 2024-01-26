@@ -1,3 +1,4 @@
+from ortools.sat.cp_model_pb2 import CpSolverStatus
 from ortools.sat.python import cp_model
 
 SOLUTION_LIMIT = 5
@@ -73,7 +74,7 @@ class RosterProblem:
                         > 0
                     )
 
-    def print_stats(self, status: str) -> None:
+    def print_stats(self, status: CpSolverStatus) -> None:
         """
         Prints statistics
         """
@@ -123,6 +124,7 @@ class RosterProblem:
                 "data": [],
             }
 
+        self.print_stats(status)
         return data
 
 
