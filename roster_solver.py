@@ -1,11 +1,22 @@
 from ortools.sat.cp_model_pb2 import CpSolverStatus
 from ortools.sat.python import cp_model
 
+# Sets the maximim number of solutions to find before stopping the search
 SOLUTION_LIMIT = 5
 
 
 class RosterProblem:
     def __init__(self, e: int, d: int, s: int, soft_days_off: bool) -> None:
+        """
+        Initializes the roster problem.
+
+        Args:
+            e (int): Number of employees.
+            d (int): Number of days in the scheduling period.
+            s (int): Number of shifts per day.
+            soft_days_off (bool): Determines if the 'two days off' rule is a
+            soft constraint (True) or hard constraint (False).
+        """
         self.__e = e  # Number of employees
         self.__d = d  # Number of days
         self.__s = s  # Number of shifts
@@ -19,8 +30,12 @@ class RosterProblem:
 
     def create_variables(self) -> None:
         """
-        Generates all combinations of employees, days and shifts and stores them
-        in a dictionary of tuples of boolean variables
+        Creates decision variables for the roster problem.
+
+        Each variable represents a potential assignment of an employee to a
+        shift on a given day. The method generates all combinations of
+        mployees, days, and shifts and stores them as boolean variables in a
+        dictionary.
         """
         all_shifts = {}
         for i in self.__employees_range:
@@ -32,10 +47,15 @@ class RosterProblem:
         self.__all_shifts = all_shifts
 
     def add_constraints(self) -> None:
-        """Adds constraints to the model. Current constraints are:
-        1. Each employee works at most one shift per day
-        2. Each employee gets at most two days off
-        3. Each shift is covered by at least one employee
+        """
+        Adds constraints to the roster problem model.
+
+        The constraints include:
+        1. Each employee works at most one shift per day.
+        2. Each employee gets at most two days off (soft or hard constraint
+        based on initialization).
+        3. Each shift (except for the 'day off' shift) is covered by at least
+        one employee.
         """
         # 1. Each employee works at most one shift per day
         for i in self.__employees_range:
@@ -76,7 +96,10 @@ class RosterProblem:
 
     def print_stats(self, status: CpSolverStatus) -> None:
         """
-        Prints statistics
+        Prints solver statistics after solving the roster problem.
+
+        Args:
+            status (CpSolverStatus): The status of the solver after the search.
         """
         print("Statistics")
         print(f"  - status          : {self.__solver.StatusName(status)}")
@@ -86,7 +109,15 @@ class RosterProblem:
 
     def make_roster(self) -> dict:
         """
-        Solves problem and returns a dictionary with the first solution found
+        Solves the roster problem and returns the first solution found.
+
+        This method sets up the problem, solves it, and processes the solution
+        into a readable format. It returns a dictionary containing the solution
+        status, week length, and the roster data.
+
+        Returns:
+            dict: A dictionary with solution details, including the roster
+            ssignment for each employee.
         """
         self.create_variables()
         self.add_constraints()
@@ -129,9 +160,17 @@ class RosterProblem:
 
 
 class SolutionPrinter(cp_model.CpSolverSolutionCallback):
-    """Stores and prints solution"""
-
     def __init__(self, all_shifts, e, d, s, limit) -> None:
+        """
+        Initializes the solution printer callback.
+
+        Args:
+            all_shifts (dict): Dictionary of all shift variables.
+            e (int): Number of employees.
+            d (int): Number of days.
+            s (int): Number of shifts.
+            limit (int): The maximum number of solutions to print.
+        """
         cp_model.CpSolverSolutionCallback.__init__(self)
         self.__all_shifts = all_shifts
         self.__e = e
@@ -142,7 +181,10 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
 
     def on_solution_callback(self) -> None:
         """
-        Stores all solutions in a list and prints them
+        Callback method called for each solution found by the solver.
+
+        This method stores and prints each solution up to the specified limit.
+        It then halts the search once the limit is reached.
         """
         solution = {}
         for i in range(1, self.__e + 1):
@@ -157,7 +199,10 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
 
     def print_solution(self, solution: dict) -> None:
         """
-        Prints a solution
+        Prints a single solution in a readable format.
+
+        Args:
+            solution (dict): The solution to print, represented as a dictionary.
         """
         result = "\n"
         days = ["M", "T", "W", "T", "F", "S", "S"]
