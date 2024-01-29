@@ -2,7 +2,7 @@ from ortools.sat.cp_model_pb2 import CpSolverStatus
 from ortools.sat.python import cp_model
 
 # Sets the maximim number of solutions to find before stopping the search
-SOLUTION_LIMIT = 5
+SOLUTION_LIMIT = 100
 
 
 class RosterProblem:
@@ -139,7 +139,7 @@ class RosterProblem:
                 "week_length": self.__d,
                 "data": [],
             }
-            solution = solution_printer.solutions[0]
+            solution = solution_printer.solutions[-1]
             # Filter assigned shifts
             assigned_shifts = [k for k, v in solution.items() if v == 1]
             for employee_num in self.__employees_range:
