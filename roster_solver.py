@@ -17,9 +17,9 @@ class RosterProblem:
             soft_days_off (bool): Determines if the 'two days off' rule is a
             soft constraint (True) or hard constraint (False).
         """
-        self.__e = e  # Number of employees
-        self.__d = d  # Number of days
-        self.__s = s  # Number of shifts
+        self.__e = e
+        self.__d = d
+        self.__s = s
         self.__soft_days_off = soft_days_off
         self.__employees_range = range(1, self.__e + 1)
         self.__days_range = range(1, self.__d + 1)
@@ -34,7 +34,7 @@ class RosterProblem:
 
         Each variable represents a potential assignment of an employee to a
         shift on a given day. The method generates all combinations of
-        mployees, days, and shifts and stores them as boolean variables in a
+        employees, days, and shifts and stores them as boolean variables in a
         dictionary.
         """
         all_shifts = {}
@@ -64,8 +64,8 @@ class RosterProblem:
                     self.__all_shifts[(i, j, k)] for k in self.__shifts_range
                 )
 
-        # Make 2 days off a soft constraint and then maximise
         if self.__soft_days_off:
+            # Make 2 days off a soft constraint and then maximise
             for i in self.__employees_range:
                 self.__model.Add(
                     sum(self.__all_shifts[(i, j, 1)] for j in self.__days_range) <= 2
@@ -133,7 +133,7 @@ class RosterProblem:
         self.__solver.parameters.enumerate_all_solutions = True
         status = self.__solver.Solve(self.__model, solution_printer)
         if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
-            # construct return object to return first solution
+            # Success
             data = {
                 "status": 0,
                 "week_length": self.__d,
