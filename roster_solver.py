@@ -68,7 +68,7 @@ class RosterProblem:
         if self.__soft_days_off:
             for i in self.__employees_range:
                 self.__model.Add(
-                    sum(self.__all_shifts[(i, j, 1)] for j in self.__days_range) <= 2
+                    sum(self.__all_shifts[(i, j, 1)] for j in self.__days_range) <= 1
                 )
             total_days_off = sum(
                 self.__all_shifts[(i, j, 1)]
@@ -93,6 +93,24 @@ class RosterProblem:
                         )
                         > 0
                     )
+
+        # assigmnments_matrix = [(2, 2), (2, 2), (1, 1), (2, 2), (1, 2), (2, 3)]
+        # for j in self.__days_range:
+        #    for k in self.__shifts_range:
+        #        self.__model.Add(
+        #            sum(self.__all_shifts[(i, j, k)] for i in self.__employees_range)
+        #            >= assigmnments_matrix[j - 1][k - 2]
+        #        )
+
+        # workers_needed = sum(sum(pair) for pair in assigmnments_matrix)
+        # workers_assigned = sum(
+        #     self.__all_shifts[(i, j, k)]
+        #     for i in self.__employees_range
+        #     for j in self.__days_range
+        #     for k in self.__shifts_range
+        #     if k > 1
+        # )
+        # print(abs(workers_needed - workers_assigned))
 
     def print_stats(self, status: CpSolverStatus) -> None:
         """
