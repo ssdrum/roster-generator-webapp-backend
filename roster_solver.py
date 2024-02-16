@@ -139,13 +139,14 @@ class RosterProblem:
                 "week_length": self.__d,
                 "data": [],
             }
+            print(len(solution_printer.solutions))
             solution = solution_printer.solutions[0]
             # Filter assigned shifts
             assigned_shifts = [k for k, v in solution.items() if v == 1]
             for employee_num in self.__employees_range:
                 shifts = [s for (e, _, s) in assigned_shifts if e == employee_num]
                 data["data"].append(
-                    {"employee_name": f"Employee {employee_num}", "shifts": shifts}
+                    {"employee_num": f"{employee_num}", "shifts": shifts}
                 )
         else:
             # Failure
