@@ -156,6 +156,7 @@ class RosterProblem:
             # construct return object to return first solution
             data = {
                 "status": 0,
+                "num_solutions": len(solution_printer.solutions),
                 "week_length": self.__d,
                 "data": [],
             }
@@ -172,6 +173,7 @@ class RosterProblem:
             # Failure
             data = {
                 "status": 1,
+                "num_solutions": 0,
                 "week_length": -1,
                 "data": [],
             }
