@@ -13,7 +13,8 @@ origins = [
     "https://roster-generator-webapp-git-development-api-in-9113f2-sdrummolo.vercel.app",
     "https://roster-generator-webapp-git-dev-sdrummolo.vercel.app",
     "https://roster-generator-webapp-git-alpha-sdrummolo.vercel.app",  # alpha preview
-    "https://roster-generator-webapp-mocha.vercel.app",  # pro production
+    "https://roster-generator-webapp-mocha.vercel.app",  # pro main
+    "https://roster-generator-webapp-git-dev-luigi-di-paolo-s-team.vercel.app",  # pro dev
 ]
 
 app.add_middleware(
