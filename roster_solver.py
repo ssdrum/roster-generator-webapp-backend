@@ -8,9 +8,7 @@ SOLUTION_LIMIT = 100
 
 
 class RosterProblem:
-    def __init__(
-        self, e: int, d: int, s: int, num_days_off: int, soft_days_off: bool
-    ) -> None:
+    def __init__(self, e: int, d: int, s: int, soft_days_off: bool) -> None:
         """
         Initializes the roster problem.
 
@@ -18,14 +16,12 @@ class RosterProblem:
             e (int): Number of employees.
             d (int): Number of days in the scheduling period.
             s (int): Number of shifts per day.
-            off (int): Number of days off to assign to everyone
             soft_days_off (bool): Determines if the 'two days off' rule is a
             soft constraint (True) or hard constraint (False).
         """
         self.__e = e  # Number of employees
         self.__d = d  # Number of days
         self.__s = s  # Number of shifts
-        self.__num_days_off = num_days_off  # Number of shifts
         self.__soft_days_off = soft_days_off
         self.__employees_range = range(1, self.__e + 1)
         self.__days_range = range(1, self.__d + 1)
@@ -70,7 +66,6 @@ class RosterProblem:
                     self.__all_shifts[(i, j, k)] for k in self.__shifts_range
                 )
 
-        # ****** Currently unused *******
         # Make 2 days off a soft constraint and then maximise
         if self.__soft_days_off:
             for i in self.__employees_range:
@@ -84,11 +79,10 @@ class RosterProblem:
             )
             self.__model.Maximize(total_days_off)
         else:
-            # Make num_days_off a hard constraint
+            # Make 2 days off a hard constraint
             for i in self.__employees_range:
                 self.__model.Add(
-                    sum(self.__all_shifts[(i, j, 1)] for j in self.__days_range)
-                    == self.__num_days_off
+                    sum(self.__all_shifts[(i, j, 1)] for j in self.__days_range) == 2
                 )
         # 3. There must be an employee working on every shift
         # Explanation: For every shift, there has to be one employee assigned that is not on a day off
