@@ -34,15 +34,20 @@ class InputData(BaseModel):
     num_employees: Annotated[int, Path(ge=1, le=30)]
     num_days: Annotated[int, Path(ge=1, le=7)]
     num_shifts: Annotated[int, Path(ge=1, le=10)]
+    num_days_off: Annotated[int, Path(ge=0, le=4)]
     soft_days_off: bool
 
 
-@app.get("/api/hello")
+@app.get("/api/wakeup")
 async def root():
     """
-    Test endpoint
+    This endpoint is used to "wake up" the production server, which runs on
+    render.com's free tier. One limitation of the free tier is that the server
+    shuts down after some period of inactifity. Restarting takes about a minute.
+    Calling this endpoint when users first arrive on the page reduces the
+    initial waiting time
     """
-    return {"message": "Hello world!"}
+    return {"message": "5 more minutes please..."}
 
 
 @app.post("/api/make_roster")
@@ -54,6 +59,7 @@ async def test(input_data: InputData):
         input_data.num_employees,
         input_data.num_days,
         input_data.num_shifts,
+        input_data.num_days_off,
         input_data.soft_days_off,
     )
     return problem.make_roster()
