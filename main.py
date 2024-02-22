@@ -10,8 +10,6 @@ app = FastAPI()
 # Allowed origins
 origins = [
     "http://localhost:3000",
-    "https://roster-generator-webapp-git-development-api-in-9113f2-sdrummolo.vercel.app",
-    "https://roster-generator-webapp-git-dev-sdrummolo.vercel.app",
     "https://roster-generator-webapp-git-alpha-sdrummolo.vercel.app",  # alpha preview
     "https://roster-generator-webapp-mocha.vercel.app",  # pro main
     "https://roster-generator-webapp-git-dev-luigi-di-paolo-s-team.vercel.app",  # pro dev
@@ -34,6 +32,7 @@ class InputData(BaseModel):
     num_employees: Annotated[int, Path(ge=1, le=30)]
     num_days: Annotated[int, Path(ge=1, le=7)]
     num_shifts: Annotated[int, Path(ge=1, le=10)]
+    num_days_off: Annotated[int, Path(ge=0, le=4)]
     soft_days_off: bool
 
 
@@ -58,6 +57,7 @@ async def test(input_data: InputData):
         input_data.num_employees,
         input_data.num_days,
         input_data.num_shifts,
+        input_data.num_days_off,
         input_data.soft_days_off,
     )
     return problem.make_roster()
