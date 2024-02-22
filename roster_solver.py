@@ -32,7 +32,7 @@ class RosterProblem:
         self.__shifts_range = range(1, self.__s + 1)
         self.__model = cp_model.CpModel()
         self.__solver = cp_model.CpSolver()
-        self.__all_shifts = {}
+        self.__all_poss_assignments = {}
 
     def create_variables(self) -> None:
         """
@@ -43,14 +43,14 @@ class RosterProblem:
         mployees, days, and shifts and stores them as boolean variables in a
         dictionary.
         """
-        all_shifts = {}
+        all_poss_assignments = {}
         for i in self.__employees_range:
             for j in self.__days_range:
                 for k in self.__shifts_range:
-                    all_shifts[(i, j, k)] = self.__model.NewBoolVar(
+                    all_poss_assignments[(i, j, k)] = self.__model.NewBoolVar(
                         f"i={i}_j={j}_k={k}"
                     )
-        self.__all_shifts = all_shifts
+        self.__all_poss_assignments = all_poss_assignments
 
     def add_constraints(self) -> None:
         """
@@ -67,18 +67,22 @@ class RosterProblem:
         for i in self.__employees_range:
             for j in self.__days_range:
                 self.__model.AddExactlyOne(
-                    self.__all_shifts[(i, j, k)] for k in self.__shifts_range
+                    self.__all_poss_assignments[(i, j, k)] for k in self.__shifts_range
                 )
 
-        # ****** Currently unused *******
-        # Make 2 days off a soft constraint and then maximise
+        # 2. Add days off either as a soft or as a hard constraint
+        # Make days off a soft constraint and then maximise number of days off assigned
         if self.__soft_days_off:
             for i in self.__employees_range:
                 self.__model.Add(
-                    sum(self.__all_shifts[(i, j, 1)] for j in self.__days_range) <= 1
+                    sum(
+                        self.__all_poss_assignments[(i, j, 1)]
+                        for j in self.__days_range
+                    )
+                    <= self.__num_days_off
                 )
             total_days_off = sum(
-                self.__all_shifts[(i, j, 1)]
+                self.__all_poss_assignments[(i, j, 1)]
                 for i in self.__employees_range
                 for j in self.__days_range
             )
@@ -87,38 +91,42 @@ class RosterProblem:
             # Make num_days_off a hard constraint
             for i in self.__employees_range:
                 self.__model.Add(
-                    sum(self.__all_shifts[(i, j, 1)] for j in self.__days_range)
+                    sum(
+                        self.__all_poss_assignments[(i, j, 1)]
+                        for j in self.__days_range
+                    )
                     == self.__num_days_off
                 )
-        # 3. There must be an employee working on every shift
+
+        # 3. There must be at least one employee working on every shift
         # Explanation: For every shift, there has to be one employee assigned that is not on a day off
         for j in self.__days_range:
             for k in self.__shifts_range:
                 if k != 1:  # Skip shift 1 which represents a day off
                     self.__model.Add(
                         sum(
-                            self.__all_shifts[(i, j, k)] for i in self.__employees_range
+                            self.__all_poss_assignments[(i, j, k)]
+                            for i in self.__employees_range
                         )
                         > 0
                     )
+        # 4. Experimental. Assign a specific number of employees per shift
 
-        # assigmnments_matrix = [(2, 2), (2, 2), (1, 1), (2, 2), (1, 2), (2, 3)]
-        # for j in self.__days_range:
-        #    for k in self.__shifts_range:
+        # Assignment matrix[a][b] == all_poss_assignments[x][b][a], where x is a variable and a and b are fixed
+        # assignments_matrix = [[1, 2, 3], [1, 1, 1]]
+        # for s in range(
+        #    2, self.__s + 1
+        # ):  # We start at 2 to skip shift 1, which represents a day off
+        #    for d in self.__days_range:
+        #        # print(self.__all_poss_assignments[(e, d, s)])
+        #        # print(f"s={s}, d={d}, e={e}")
         #        self.__model.Add(
-        #            sum(self.__all_shifts[(i, j, k)] for i in self.__employees_range)
-        #            >= assigmnments_matrix[j - 1][k - 2]
+        #            sum(
+        #                self.__all_poss_assignments[(e, d, s)]
+        #                for e in self.__employees_range
+        #            )
+        #            >= assignments_matrix[s - 2][d - 1]
         #        )
-
-        # workers_needed = sum(sum(pair) for pair in assigmnments_matrix)
-        # workers_assigned = sum(
-        #     self.__all_shifts[(i, j, k)]
-        #     for i in self.__employees_range
-        #     for j in self.__days_range
-        #     for k in self.__shifts_range
-        #     if k > 1
-        # )
-        # print(abs(workers_needed - workers_assigned))
 
     def print_stats(self, status: CpSolverStatus) -> None:
         """
@@ -148,12 +156,17 @@ class RosterProblem:
         self.create_variables()
         self.add_constraints()
 
+        # tot_shifts_assigned =
         # Initialise return object
         data = {}
 
         # Initialise solution printer
         solution_printer = SolutionPrinter(
-            self.__all_shifts, self.__e, self.__d, self.__s, SOLUTION_LIMIT
+            self.__all_poss_assignments,
+            self.__e,
+            self.__d,
+            self.__s,
+            SOLUTION_LIMIT,
         )
         # Find all solutions (up to limit)
         self.__solver.parameters.enumerate_all_solutions = True
@@ -189,19 +202,19 @@ class RosterProblem:
 
 
 class SolutionPrinter(cp_model.CpSolverSolutionCallback):
-    def __init__(self, all_shifts, e, d, s, limit) -> None:
+    def __init__(self, all_poss_assignments, e, d, s, limit) -> None:
         """
         Initializes the solution printer callback.
 
         Args:
-            all_shifts (dict): Dictionary of all shift variables.
+            all_poss_assignments (dict): Dictionary of all shift variables.
             e (int): Number of employees.
             d (int): Number of days.
             s (int): Number of shifts.
             limit (int): The maximum number of solutions to print.
         """
         cp_model.CpSolverSolutionCallback.__init__(self)
-        self.__all_shifts = all_shifts
+        self.__all_poss_assignments = all_poss_assignments
         self.__e = e
         self.__d = d
         self.__s = s
@@ -219,7 +232,9 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
         for i in range(1, self.__e + 1):
             for j in range(1, self.__d + 1):
                 for k in range(1, self.__s + 1):
-                    solution[(i, j, k)] = self.Value(self.__all_shifts[(i, j, k)])
+                    solution[(i, j, k)] = self.Value(
+                        self.__all_poss_assignments[(i, j, k)]
+                    )
         self.solutions.append(solution)
         self.print_solution(solution)
         if len(self.solutions) >= self.__limit:
