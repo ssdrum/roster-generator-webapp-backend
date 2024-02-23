@@ -25,7 +25,7 @@ class RosterProblem:
         self.__e = e  # Number of employees
         self.__d = d  # Number of days
         self.__s = s  # Number of shifts
-        self.__num_days_off = num_days_off  # Number of shifts
+        self.__num_days_off = num_days_off
         self.__soft_days_off = soft_days_off
         self.__employees_range = range(1, self.__e + 1)
         self.__days_range = range(1, self.__d + 1)
